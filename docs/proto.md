@@ -1845,6 +1845,7 @@
     - [Rpc.Publishing.Create.Response.Error.Code](#anytype-Rpc-Publishing-Create-Response-Error-Code)
     - [Rpc.Publishing.GetStatus.Response.Error.Code](#anytype-Rpc-Publishing-GetStatus-Response-Error-Code)
     - [Rpc.Publishing.List.Response.Error.Code](#anytype-Rpc-Publishing-List-Response-Error-Code)
+    - [Rpc.Publishing.PublishFormat](#anytype-Rpc-Publishing-PublishFormat)
     - [Rpc.Publishing.PublishStatus](#anytype-Rpc-Publishing-PublishStatus)
     - [Rpc.Publishing.Remove.Response.Error.Code](#anytype-Rpc-Publishing-Remove-Response-Error-Code)
     - [Rpc.Publishing.ResolveUri.Response.Error.Code](#anytype-Rpc-Publishing-ResolveUri-Response-Error-Code)
@@ -21439,6 +21440,7 @@ Available undo/redo operations
 | objectId | [string](#string) |  |  |
 | uri | [string](#string) |  |  |
 | joinSpace | [bool](#bool) |  |  |
+| format | [Rpc.Publishing.PublishFormat](#anytype-Rpc-Publishing-PublishFormat) |  |  |
 
 
 
@@ -29305,6 +29307,18 @@ Middleware-to-front-end response, that can contain a NULL error or a non-NULL er
 | UNKNOWN_ERROR | 1 |  |
 | BAD_INPUT | 2 |  |
 | NO_SUCH_SPACE | 102 |  |
+
+
+
+<a name="anytype-Rpc-Publishing-PublishFormat"></a>
+
+### Rpc.Publishing.PublishFormat
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| FORMAT_DEFAULT | 0 |  |
+| FORMAT_HTML_SPA | 1 |  |
 
 
 

@@ -113,7 +113,11 @@ func (m *mockPublishClient) ListPublishes(ctx context.Context, spaceId string) (
 func (m *mockPublishClient) UploadDir(ctx context.Context, uploadUrl, dir string) (err error) {
 	assert.NoError(m.t, filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
-			m.checkIndexFile(path, info)
+			if info.Name() == testLimitsConfig.IndexFileName {
+				m.checkIndexFile(path, info)
+			} else if info.Name() == "index.html" {
+				m.checkHtmlIndexFile(path, info)
+			}
 		}
 		return nil
 	}))
@@ -142,6 +146,16 @@ func (m *mockPublishClient) checkIndexFile(path string, info os.FileInfo) {
 	}
 }
 
+func (m *mockPublishClient) checkHtmlIndexFile(path string, info os.FileInfo) {
+	assert.Equal(m.t, info.Name(), "index.html")
+	fileContent, err := os.ReadFile(path)
+	assert.NoError(m.t, err)
+	content := string(fileContent)
+	assert.Contains(m.t, content, "<!DOCTYPE html>")
+	assert.Contains(m.t, content, "id=\"route-"+m.expectedObject+"\"")
+	assert.Contains(m.t, content, "function navigate(e, path)")
+}
+
 var testLimitsConfig = config.PublishLimitsConfig{
 	MembershipLimit:       12 << 20,
 	DefaultLimit:          10 << 20,
@@ -152,6 +166,49 @@ var testLimitsConfig = config.PublishLimitsConfig{
 }
 
 func TestPublish(t *testing.T) {
+	t.Run("success HTML_SPA format", func(t *testing.T) {
+		// given
+		isPersonal := true
+		includeSpaceInfo := false
+
+		spaceService, err := prepareSpaceService(t, isPersonal, includeSpaceInfo)
+
+		objectTypeId := "customObjectType"
+		expectedUri := "test"
+		expected := fmt.Sprintf(testLimitsConfig.DefaultUrlTemplate, id) + "/" + expectedUri
+		publishClient := &mockPublishClient{
+			t:              t,
+			expectedUrl:    expected,
+			expectedObject: objectId,
+			expectedInvite: "",
+			expectedSpace:  spaceId,
+		}
+
+		identityService := mock_identity.NewMockService(t)
+		identityService.EXPECT().GetMyProfileDetails(context.Background()).Return("identity", nil, domain.NewDetailsFromMap(map[domain.RelationKey]domain.Value{}))
+
+		exp := prepareExporter(t, objectTypeId, spaceService, false)
+
+		svc := &service{
+			spaceService:         spaceService,
+			exportService:        exp,
+			publishClientService: publishClient,
+			identityService:      identityService,
+			tempDirService:       core.NewTempDirService(),
+			limitsConfig:         testLimitsConfig,
+		}
+
+		// when
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_HTML_SPA)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, expected, publish.Url)
+		assert.Equal(t, "{\"heads\":[\"heads\"],\"joinSpace\":false}", publishClient.expectedRequest.Version)
+		assert.Equal(t, objectId, publishClient.expectedRequest.ObjectId)
+		assert.Equal(t, spaceId, publishClient.expectedRequest.SpaceId)
+		assert.Equal(t, expectedUri, publishClient.expectedRequest.Uri)
+	})
 	t.Run("success", func(t *testing.T) {
 		// given
 		isPersonal := true
@@ -189,7 +246,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
 
 		// then
 		assert.NoError(t, err)
@@ -247,7 +304,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
 
 		// then
 		assert.NoError(t, err)
@@ -298,7 +355,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
 
 		// then
 		assert.NoError(t, err)
@@ -359,7 +416,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
 
 		// then
 		assert.NoError(t, err)
@@ -408,7 +465,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
 
 		// then
 		assert.Error(t, err)
@@ -464,7 +521,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
 
 		// then
 		assert.Error(t, err)
@@ -514,7 +571,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
 
 		// then
 		assert.Error(t, err)
