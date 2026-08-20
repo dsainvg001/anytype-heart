@@ -1,4 +1,4 @@
-package publish
+package tests
 
 import (
 	"os"
@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/anyproto/anytype-heart/core/publish"
 	"github.com/anyproto/anytype-heart/pb"
 	"github.com/anyproto/anytype-heart/pkg/lib/pb/model"
 )
@@ -156,7 +157,7 @@ func TestSingleFileHtmlBuilder_BuildSPA(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(filesDir, "sample.png"), []byte("pngdata"), 0644))
 
 	// Run SPA builder
-	builder := NewSingleFileHtmlBuilder()
+	builder := publish.NewSingleFileHtmlBuilder()
 	htmlData, err := builder.BuildSPA(tempDir, rootPageID, "https://invite.anytype.io/123#456")
 	require.NoError(t, err)
 
