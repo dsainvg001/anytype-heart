@@ -23,6 +23,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/anyproto/any-sync/app"
@@ -85,9 +86,30 @@ type PublishingUberSnapshot struct {
 	PbFiles map[string]string `json:"pbFiles,omitempty"`
 }
 
+type PublishFormat int
+
+const (
+	PublishFormatDefault PublishFormat = iota
+	PublishFormatHtmlSPA
+)
+
+func parseUriFormat(uri string) (cleanUri string, format PublishFormat) {
+	cleanUri = uri
+	format = PublishFormatDefault
+	if strings.Contains(uri, "?") {
+		parts := strings.SplitN(uri, "?", 2)
+		cleanUri = parts[0]
+		query := strings.ToLower(parts[1])
+		if strings.Contains(query, "format=html_spa") || strings.Contains(query, "format=html") || strings.Contains(query, "export_format=html_spa") {
+			format = PublishFormatHtmlSPA
+		}
+	}
+	return cleanUri, format
+}
+
 type Service interface {
 	app.ComponentRunnable
-	Publish(ctx context.Context, spaceId, pageObjId, uri string, joinSpace bool, format pb.RpcPublishingPublishFormat) (res PublishResult, err error)
+	Publish(ctx context.Context, spaceId, pageObjId, uri string, joinSpace bool) (res PublishResult, err error)
 	Unpublish(ctx context.Context, spaceId, pageObjId string) error
 	PublishList(ctx context.Context, id string) ([]*pb.RpcPublishingPublishState, error)
 	ResolveUri(ctx context.Context, uri string) (*pb.RpcPublishingPublishState, error)
@@ -167,7 +189,7 @@ func (s *service) exportToDir(ctx context.Context, spaceId, pageId string, inclu
 	return
 }
 
-func (s *service) publishToPublishServer(ctx context.Context, spaceId, pageId, uri, globalName string, joinSpace bool, format pb.RpcPublishingPublishFormat) (err error) {
+func (s *service) publishToPublishServer(ctx context.Context, spaceId, pageId, uri, globalName string, joinSpace bool, format PublishFormat) (err error) {
 	spc, err := s.spaceService.Get(ctx, spaceId)
 	if err != nil {
 		return err
@@ -191,7 +213,7 @@ func (s *service) publishToPublishServer(ctx context.Context, spaceId, pageId, u
 		return err
 	}
 
-	if format == pb.RpcPublishing_FORMAT_HTML_SPA {
+	if format == PublishFormatHtmlSPA {
 		var totalSize int64
 		for _, entry := range dirEntries {
 			if entry.IsDir() && entry.Name() == export.Files {
@@ -464,17 +486,19 @@ func (s *service) getPublishLimit(globalName string) (int64, error) {
 	return s.limitsConfig.DefaultLimit, nil
 }
 
-func (s *service) Publish(ctx context.Context, spaceId, pageId, uri string, joinSpace bool, format pb.RpcPublishingPublishFormat) (res PublishResult, err error) {
+func (s *service) Publish(ctx context.Context, spaceId, pageId, uri string, joinSpace bool) (res PublishResult, err error) {
 	identity, _, details := s.identityService.GetMyProfileDetails(ctx)
 	globalName := details.GetString(bundle.RelationKeyGlobalName)
 
-	err = s.publishToPublishServer(ctx, spaceId, pageId, uri, globalName, joinSpace, format)
+	cleanUri, format := parseUriFormat(uri)
+
+	err = s.publishToPublishServer(ctx, spaceId, pageId, cleanUri, globalName, joinSpace, format)
 
 	if err != nil {
 		log.Error("Failed to publish", zap.Error(err))
 		return
 	}
-	url := s.makeUrl(uri, identity, globalName)
+	url := s.makeUrl(cleanUri, identity, globalName)
 
 	return PublishResult{Url: url}, nil
 }

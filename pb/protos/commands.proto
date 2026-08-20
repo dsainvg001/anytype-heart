@@ -1713,10 +1713,6 @@ message Rpc {
             // PublishStatusCreated means publish is active
             PublishStatusPublished = 1;
         }
-        enum PublishFormat {
-            FORMAT_DEFAULT = 0;
-            FORMAT_HTML_SPA = 1;
-        }
         message PublishState {
             string spaceId = 1;
             string objectId = 2;
@@ -1735,7 +1731,6 @@ message Rpc {
                 string objectId = 2;
                 string uri = 3;
                 bool joinSpace = 4;
-                PublishFormat format = 5;
             }
             message Response {
                 Error error = 1;

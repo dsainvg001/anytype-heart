@@ -199,7 +199,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_HTML_SPA)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri+"?format=html_spa", includeSpaceInfo)
 
 		// then
 		assert.NoError(t, err)
@@ -246,7 +246,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
 
 		// then
 		assert.NoError(t, err)
@@ -304,7 +304,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
 
 		// then
 		assert.NoError(t, err)
@@ -355,7 +355,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
 
 		// then
 		assert.NoError(t, err)
@@ -416,7 +416,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
 
 		// then
 		assert.NoError(t, err)
@@ -465,7 +465,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
 
 		// then
 		assert.Error(t, err)
@@ -521,7 +521,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
 
 		// then
 		assert.Error(t, err)
@@ -571,7 +571,7 @@ func TestPublish(t *testing.T) {
 		}
 
 		// when
-		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo, pb.RpcPublishing_FORMAT_DEFAULT)
+		publish, err := svc.Publish(context.Background(), spaceId, objectId, expectedUri, includeSpaceInfo)
 
 		// then
 		assert.Error(t, err)
